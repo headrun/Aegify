@@ -46,17 +46,6 @@ Ubuntu bionic - 18.04
    #For ENV_SERVER_TYPE all/webserver
    export ENV_SITES=<site>.headrun.com
    export ENV_NUM_PROCESSES=<int>
-
-   #For ENV_SERVER_TYPE all/crawler
-   export ENV_CONCURRENT_REQUESTS=<int>
-   #For Selenium
-   export ENV_SELENIUM=<selenium>
-   #To export selenium driver path
-   export ENV_GECKODRIVER_EXECUTABLE_PATH=<driver_executable_path>
-   #For Puppeteer
-   export ENV_PUPPETEER=<puppeteer>
-   export ENV_MNV=<node version> #v14
-
    export SITE=<sites/name>
 
    #For HTTPS and PROD
@@ -137,13 +126,13 @@ Schedule the below command in crontab or django celery etc., Use Lockrun or some
 ### Https
 Installing key and certificate files for Https.
  ```
- create a directory <site>.headrun.com with ssl.crt and ssl.key
- scp -r <site>.headrun.com <user>@<ip>:~/
+ create a directory <site>.aegify.com with ssl.crt and ssl.key
+ scp -r <site>.aegify.com <user>@<ip>:~/
  ssh <user>@<ip>
- sudo mv <site>.headrun.com /etc/ssl/private/
+ sudo mv <site>.aegify.com /etc/ssl/private/
  cd /etc/ssl/private
- chown -R root:root <site>.headrun.com
- cd <site>.headrun.com
+ chown -R root:root <site>.aegify.com
+ cd <site>.aegify.com
  chmod 640 ssl.key
  chmod 644 ssl.crt
  exit
