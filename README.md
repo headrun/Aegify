@@ -44,7 +44,7 @@ Ubuntu bionic - 18.04
    export ENV_SERVER_TYPE=<all/webserver/crawler/dev>
 
    #For ENV_SERVER_TYPE all/webserver
-   export ENV_SITES=<site>.headrun.com
+   export ENV_SITES=<site>.aegify.com
    export ENV_NUM_PROCESSES=<int>
    export SITE=<sites/name>
 
