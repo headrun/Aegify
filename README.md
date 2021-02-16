@@ -70,15 +70,6 @@ Ubuntu bionic - 18.04
  if ENV_SERVER_TYPE=<all/webserver/dev>
     sh deploy/django.sh createsuperuser
 
- if ENV_SERVER_TYPE=<crawler>
-    ###Grant acess of DB to ENV_SERVER_TYPE=<crawler> by following these steps:
-        1. export MYSQL_ROOT_PASSWORD=<mysql_root_password>
-        2. source ~/.bash_profile.<site>
-        3. sh deploy/django.sh grant_db_access
-        4. Do following changes in mysql configuration file:
-            -sudo vim /etc/mysql/mysql.conf.d/mysqld.conf and comment bind-address. 
-            -sudo service mysql restart.
-
  exit
  ```
 #if we faced any nginx-issue, please add the below config.
