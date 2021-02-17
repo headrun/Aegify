@@ -1,1 +1,1 @@
-INCLUDE_UPLOAD_URL=['swift']
+INCLUDE_UPLOAD_URL=['legal']
