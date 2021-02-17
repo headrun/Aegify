@@ -1,2 +1,1 @@
-#DEPLOY_DIRS = ['base', 'crawl', 'legal']
-DEPLOY_DIRS = []
+DEPLOY_DIRS = ['base', 'crawl', 'legal']
