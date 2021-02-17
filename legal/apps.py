@@ -1,7 +1,7 @@
 from django.apps import AppConfig
 
 
-class FrontendConfig(AppConfig):
+class AegifyConfig(AppConfig):
     name = 'legal'
     verbose_name = "aegify"
 
