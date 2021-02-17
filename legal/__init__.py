@@ -1,2 +1,2 @@
-default_app_config = 'legal.apps.AegifyConfig'
+default_app_config = 'legal.apps.FrontendConfig'
 
