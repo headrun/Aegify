@@ -8,8 +8,29 @@ def cleanData(data):
 
 class detailResultPage(BasePage):
     def request(self):
-        license_number = self.key.split('_')[-1].strip()
-        url = SOURCE_URL + ''.join(self.response.xpath('//span[text()=%s]/../../td/table/tr/td/a/@href'%license_number).extract()).strip()
+        request_data = data_from_unique_key(self.key)
+        license_number = request_data.get('licenseNumber', '')
+        records = self.response.xpath('//span[text()=%s]/../..'%license_number)
+        keys = ['licenseType', 'status', 'licenseNumber', 'address']
+        record_url = []
+        for each_record in records:
+            data = {}
+            person_name = ''.join(each_record.xpath('./td/table/tr/td/a/text()').extract()).strip()
+            data['personName'] = key_decryption(person_name)
+            td_data = each_record.xpath('./td/span/text()').extract()
+            index = 0
+            for key in keys:
+                if index < len(td_data):
+                    data[key] = key_decryption(td_data[index])
+                else:
+                    data[key] = ''
+                index = index + 1
+            if data == request_data:
+                record_url.append(''.join(each_record.xpath('./td/table/tr/td/a/@href').extract()).strip())
+        try:
+            url = SOURCE_URL + record_url[0]
+        except:
+            raise Exception("The given search is not valid")
         headers = {
             'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:77.0) Gecko/20100101 Firefox/77.0',
             'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
@@ -22,6 +43,8 @@ class detailResultPage(BasePage):
         return Request(url, headers=headers, dont_filter=True, meta={'cookiejar': self.cookiejar})
     
     def parse(self, response):
+        if response.status in [302, 404]:
+            raise Exception("Session has expired.")
         item = {}
         person_name = ''.join(response.xpath('//td[@class="rdata"]/span[contains(@id, "full_name")]/text()').extract()).strip()
         item["licenseType"] = ''.join(response.xpath('//td[@class="rdata"]/span[contains(@id, "license_type")]/text()').extract()).strip()
@@ -40,13 +63,13 @@ class detailResultPage(BasePage):
             except:pass
         #Specialties
         speciality_rows = response.xpath('//caption[contains(text(),"Specialties")]/following-sibling::tr')
-        item["primarySpecialty"] = self.getTableData(speciality_rows, ('certifyingBoard', 'specialty'))
+        item["primarySpecialty"] = self.getTableData(speciality_rows, ('specialty', 'certifyingBoard', 'isPrimarySpecialty'))
         # address splitting
         street_address = ','.join(response.xpath('//td[@class="rdata"]/span[contains(@id, "addr_line")]/text()').extract()).strip()
         item["streetAddress"] = street_address
-        try:item["zip_code"] = re.findall('[0-9]{5}', street_address)[-1]
+        try:item["zipCode"] = int(re.findall('[0-9]{5}', street_address)[-1])
         except:pass
-        try:item["state"] = re.findall('\s+[A-Z]{2}', street_address)[-1]
+        try:item["state"] = re.findall('\s+[A-Z]{2}', street_address)[-1].strip()
         except:pass
         item["country"] = ''.join(response.xpath('//td[@class="rlabel"]/following-sibling::td/span[contains(@id, "country")]/text()').extract()).strip()
         item["county"] = ''.join(response.xpath('//td[@class="rdata"]/span[contains(@id, "county")]/text()').extract()).strip()
@@ -84,7 +107,7 @@ class detailResultPage(BasePage):
         try:
             license_ensure_state, license_issue_date, malpractice_coverage = response.xpath('//caption[contains(text(),"Initial Licensure")]/following-sibling::tr/td/text()').extract()
             if cleanData(license_ensure_state):
-                try:item["initialLicensureState"] = str(datetime.strptime(license_ensure_state, '%m/%d/%Y'))
+                try:item["initialLicensureState"] =  cleanData(license_ensure_state)
                 except:pass
             if cleanData(license_issue_date):
                 try:item["initialLicenseIssueDate"] = str(datetime.strptime(license_issue_date, '%m/%d/%Y'))
@@ -130,13 +153,24 @@ class detailResultPage(BasePage):
         item["criminalOffensesStatus"] = self.getTableData(crimical_offenses_list, ('dateofOffense', 'jurisdiction', 'descriptionofOffense'))
         #arbitrationAwards
         arbitration_awards_list = response.xpath('//table[@id="udogrid_malp_judgement"]/tr')
-        item["arbitrationAwards"] = self.getTableData(arbitration_awards_list, ('date', 'ammount'))
+        item["arbitrationAwards"] = self.getTableData(arbitration_awards_list, ('date', 'amount'))
         #settlementAmounts
         settlement_ammounts_list = response.xpath('//table[@id="udogrid_malp_settlement"]/tr')
-        item["settlementAmounts"] = self.getTableData(settlement_ammounts_list, ('date', 'ammount'))
+        item["settlementAmounts"] = self.getTableData(settlement_ammounts_list, ('date', 'amount'))
+        item["additionalInfo"] = {}
+        #List of all languages excluding English used the by physician to communicate 
+        languages = ','.join(response.xpath('//table[@id="udogrid_languages"]/tr/td/text()').extract()).strip()
+        if languages:
+            item["additionalInfo"]["knownLanguages"] = languages
         #List of physician's articles, journals, or publications limited to the most recent ten years
         publication_list = response.xpath('//table[@id="udogrid_publications"]/tr')
-        publication = self.getTableData(settlement_ammounts_list, ('date', 'publication', 'title'))
+        publication = self.getTableData(publication_list, ('date', 'publication', 'title'))
+        if publication:
+            item["additionalInfo"]["publication"] = str(publication)
+        #Physician's Comments
+        physician_comments = response.xpath('//table[@id="udogrid_profile_comments"]/tr/td/text()').extract()
+        if physician_comments:
+            item["additionalInfo"]["physicianComments"] = ' '.join([ele for ele in physician_comments if ele.replace('\xa0', '')])
         #Membership in Professional Organizations/Community Service Organizations Status
         membership_in_organizations = response.xpath('//table[@id="udogrid_org_act"]/tr')
         item["membershipInOrganizations"] = self.getTableData(membership_in_organizations, ('organization', 'organizationType', 'description'))
@@ -164,9 +198,13 @@ class detailResultPage(BasePage):
                             city, state, zip_code = self.getAddress(value)
                             item.update({
                                 'city': city.strip(),
-                                'zip_code': zip_code.strip(),
                                 'state_code': state.strip()
                             })
+                            if zip_code:
+                                try:
+                                    item['zipCode'] = int(zip_code)
+                                except:
+                                    pass
                         else:
                             item[key] = cleanData(value)
                     table_data.append(item)
@@ -175,14 +213,20 @@ class detailResultPage(BasePage):
 
     def getAddress(self, location):
         city, state, zip_code = '', '', ''
-        location_data = location.split()
-        if len(location_data) >= 3:
-            city, state, zip_code = location_data[:3]
-        elif len(location_data) == 2:
-            city, state = location_data
-        elif len(location_data) == 1:
+        try:zip_code = int(re.findall('[0-9]{5}', location)[-1])
+        except:pass
+        try:state = re.findall('\s?\,?([A-Z]{2})', location)[-1].strip()
+        except:pass
+        if not state and not zip_code:
             city = location
-        return (city.strip(), state.strip(), zip_code.strip())
+        else:
+            if state:
+                try:city = location.split(state)[0].strip(', /')
+                except:pass
+            elif zip_code:
+                try:city = location.split(str(zip_code))[0].strip(', /')
+                except:pass
+        return (city.strip(), state.strip(), zip_code)
 
 class DetailListingPage(MainPage):
     next_class = detailResultPage

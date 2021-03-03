@@ -1,6 +1,7 @@
 from . import *
 from crawl.scrapy.spiders.base import DataPage
 import math
+from datetime import datetime
 item_list = {}
 class PaginationClass(BasePage):
     def request(self):
@@ -60,8 +61,8 @@ class PaginationClass(BasePage):
                 td_data = each_row.xpath('./td/span/text()').extract()
                 for (key, value) in zip(keys, td_data):
                     data[key] = value.strip()
-                unique_key = '-'.join(data.get('licenseType', '').split(' ')) + '_' + data.get('licenseNumber', '')
-                yield self.spider.get_item(self, SOURCE, unique_key, data, field_name='detail')
+                unique_key = generate_unique_key([data.get('licenseType', ''), data.get('licenseNumber', ''), data.get('status', ''), person_name, data.get('address', '')])
+                yield self.spider.get_item(self, SOURCE, unique_key, data, field_name='detail', last_scraped_at=datetime.today())
             if response.status in [302, 404]:
                 yield {'pageNumber':self.page - 1}
                 raise Exception("Session has expired.")
@@ -98,11 +99,11 @@ class MainPage(BasePage):
                 break
             count = count - 1
         if not request_data["g-recaptcha-response"]:
-            raise Exception("Deapth By Captcha doesn't responded.")
+            raise Exception("Deapth By Captcha doesn't responded.") 
         if self.page_type == 'terminalPage':
-            request_data['license_type'], request_data['license_number'] = self.key.split('_')
+            request_data.update(data_from_unique_key(self.key))
         else:
-            request_data['license_type'] = self.key
+            request_data['licenseType'] = ' '.join(self.key.split('-'))
         return searchPage(self, request_data = request_data, next_class=self.next_class, page_type=self.page_type, cookiejar=response.meta.get("cookiejar"))
 
 class searchPage(BasePage):
@@ -115,10 +116,10 @@ class searchPage(BasePage):
             '__VIEWSTATEGENERATOR':self.request_data.get('__VIEWSTATEGENERATOR',''),
             '__EVENTVALIDATION':self.request_data.get('__EVENTVALIDATION','') ,
             't_web_lookup__first_name': '',
-            't_web_lookup__license_type_name': self.request_data.get('license_type', '').replace('-', ' ').strip(),
+            't_web_lookup__license_type_name': self.request_data.get('licenseType', ''),
             't_web_lookup__last_name': '',
-            't_web_lookup__license_status_name': '',
-            't_web_lookup__license_no': self.request_data.get('license_number', '').strip(),
+            't_web_lookup__license_status_name': self.request_data.get('status', ''),
+            't_web_lookup__license_no': self.request_data.get('licenseNumber', ''),
             't_web_lookup__addr_city': '',
             't_web_lookup__addr_state': '',
             'g-recaptcha-response': self.request_data.get('g-recaptcha-response',''),
