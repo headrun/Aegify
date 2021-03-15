@@ -138,6 +138,7 @@ class Massachusetts(BaseSchemaItem):
 class Specialtyschema(Model):
     certifyingBoard = StringType()
     specialty = StringType()
+    isPrimarySpecialty = StringType()
 
 class MedicalSchoolFacultiesschema(Model):
     school_name = StringType()
@@ -146,7 +147,7 @@ class MedicalSchoolFacultiesschema(Model):
 class Hospitalprivilegsschema(Model):
     hospitalName = StringType(required=True)
     city = StringType()
-    zip_code = StringType()
+    zipCode = IntType()
     state_code = StringType()
 
 class CriminalOffensesschema(Model):
@@ -160,7 +161,7 @@ class Awardsschema(Model):
 
 class Malpraticeamountschema(Model):
     date = DateTimeType(serialized_format='%Y-%m-%d %H:%M:%S')
-    ammount = StringType()
+    amount = StringType()
 
 class DisciplinaryActionschema(Model):
      actionAgency = StringType()
@@ -219,10 +220,6 @@ class PublicDocumentsschema(Model):
 
 class GeorgiaSchema(BaseSchemaItem):
     name = 'georgia_meta'
-    firstName = StringType()
-    middleName = StringType()
-    lastName = StringType()
-    suffix = StringType()
     licenseType = StringType()
     designation  = StringType()
     status = StringType()
@@ -234,14 +231,14 @@ class GeorgiaSchema(BaseSchemaItem):
     licenseRenewalDate = DateTimeType(serialized_format='%Y-%m-%d %H:%M:%S')
     primarySpecialty = ListType(ModelType(Specialtyschema))
     streetAddress = StringType()
-    zip_code = StringType()
+    zipCode = IntType()
     state = StringType()
     country = StringType()
     county = StringType()
     relatedLicenses = ListType(ModelType(RelatedLicensesschema))
     publicDocuments = ListType(ModelType(PublicDocumentsschema))
     profileSubmissionDate = DateTimeType(serialized_format='%Y-%m-%d %H:%M:%S')
-    initialLicensureState = DateTimeType(serialized_format='%Y-%m-%d %H:%M:%S')
+    initialLicensureState = StringType()
     initialLicenseIssueDate = DateTimeType(serialized_format='%Y-%m-%d %H:%M:%S')
     malpracticeCoverage = StringType()
     currentPracticeLocation = ListType(ModelType(CurrentPracticeLocationschema))
@@ -260,7 +257,7 @@ class GeorgiaSchema(BaseSchemaItem):
     membershipInOrganizations = ListType(ModelType(MembershipInProfessionalOrganizationsschema))
     awards = ListType(ModelType(Awardsschema))
     medicalSchoolFaculties    = ListType(ModelType(MedicalSchoolFacultiesschema))
-
+    additionalInfo = DictType(StringType)
 
 
 

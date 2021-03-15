@@ -51,8 +51,11 @@ class Command(BaseCommand):
             else:
                 diff = self.Diff(field_keys, fieldnames)
             if diff:
-                fieldnames += diff
-
+                for key in diff:
+                    previous_key=self.get_previous_key( fieldnames,field_keys[field_keys.index(key)-1])
+                    item_insert_at= fieldnames.index(previous_key)+1
+                    fieldnames.insert(item_insert_at, key)
+                
         with open(csvpath, 'w', newline='') as f_output:
             csv_output = csv.DictWriter(f_output, delimiter=",", fieldnames=fieldnames, extrasaction='ignore')
             csv_output.writeheader()
@@ -63,8 +66,28 @@ class Command(BaseCommand):
                 json_data = json.loads(data, strict=False)
                 csv_output.writerow(self.get_leaves(json_data))
 
+    def get_previous_key(self , fieldnames, key):
+        try:
+            item = key.split('_')
+            if len(item)>1:
+                sub_name = item[1].split('.')
+                if len(sub_name)>1:
+                    next_item = item[0]+"_"+str(int(sub_name[0])+1)+'.'+sub_name[1]
+                    if next_item in fieldnames:
+                        return self.get_previous_key(fieldnames, next_item)
+                    else:
+                        return key
+            
+            return key
+        except:
+            return key
+
     def Diff(self, field_keys, fieldnames):
-        return (list(set(field_keys)-set(fieldnames)))
+        out = []
+        for ele in field_keys:
+            if not ele in fieldnames:
+                out.append(ele)
+        return out
 
     def get_leaves(self, item, key=None, key_prefix=""):
         if isinstance(item, dict):

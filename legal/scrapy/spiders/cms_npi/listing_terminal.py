@@ -48,15 +48,15 @@ class MainPage(BasePage):
         date_time = datetime.strptime(last_date, '%a, %d %b %Y %H:%M:%S').strftime('%Y-%m-%d')
         if (date_time and not from_db_last_date) or (str(date_time) > from_db_last_date):
             z = zipfile.ZipFile(io.BytesIO(response.body))
-            zip_file = os.path.join(os.getcwd(), 'legal/output/cms_npi/%s/zipfiles/'%folder_date_name)
+            zip_file = os.path.join(os.getcwd(), 'legal/output/%s/cms_npi/zipfiles/'%folder_date_name)
             files = z.extractall(zip_file)
             pth=os.path.join(os.getcwd(), zip_file)
             for item in os.listdir(path=pth):
                 if 'npidata_pfile_' in item and '.csv' in item and not 'Header.csv' in item or '.xlsx' in item:
-                    zip_ = os.path.join(os.getcwd(), 'legal/output/cms_npi/%s/zipfiles/'%folder_date_name)
+                    zip_ = os.path.join(os.getcwd(), 'legal/output/%s/cms_npi/zipfiles/'%folder_date_name)
                     make_dir(zip_)
                     zip_ = zip_ + item
-                    csv_processed_path = os.path.join(os.getcwd(), 'legal/output/cms_npi/%s/'%folder_date_name)
+                    csv_processed_path = os.path.join(os.getcwd(), 'legal/output/%s/cms_npi/'%folder_date_name)
                     make_dir(csv_processed_path)
                     csv_processed = csv_processed_path + item
                     try:

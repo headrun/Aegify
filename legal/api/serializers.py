@@ -5,7 +5,7 @@ from django.db.models import Max
 import re
 from datetime import datetime, timedelta
 from crawl.api.serializers import *
-from ..scrapy.spiders import generate_graduation_info
+from ..scrapy.spiders.georgia import generate_graduation_info, generate_primary_speciality, generate_final_output, suffixFormation
 
 from ..models import *
 
@@ -281,8 +281,14 @@ class DetailTerminalDetailSerializer(BaseItemDetailSerializer):
                 if data.get('basic_details'):
                     data.pop('basic_details')
             elif d.name == 'georgia_meta':
+                self.get_last_record_status(obj, da)
                 data.update(generate_graduation_info(da))
+                data = generate_primary_speciality(data)
+                data = generate_final_output(data)
             elif d.name is '':
+                if len(self.get_data_list(obj)) == 1:
+                    if da.get('licenseNumber', ''):
+                        da = suffixFormation(da)
                 data.update(da)
             else:
                 data.setdefault(d.name, []).append(da)
@@ -294,7 +300,6 @@ class DetailTerminalDetailSerializer(BaseItemDetailSerializer):
         recent_checked_at = obj.updated_at.date()
         max_updated_at = DetailTerminal.objects.aggregate(Max('updated_at'))
         max_updated_at = max_updated_at['updated_at__max'].date()
-
         if first_scraped_at == last_scraped_at == recent_checked_at:
             last_record_status = 'Added'
         elif max_updated_at - recent_checked_at >= timedelta(days=14):
@@ -305,6 +310,8 @@ class DetailTerminalDetailSerializer(BaseItemDetailSerializer):
             last_record_status = 'Record Updated'
 
         data['lastRecordDataStatus'] = last_record_status
+        data['firstRecordScrapeDate'] = str(first_scraped_at)
+        data['lastRecordScrapeDate'] = str(last_scraped_at)
 
     class Meta(BaseItemDetailSerializer.Meta):
         model = DetailTerminal

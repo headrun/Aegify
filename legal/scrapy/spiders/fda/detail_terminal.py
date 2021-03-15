@@ -44,8 +44,8 @@ class NextPage(BasePage):
         today = datetime.now()
         folder_date_name = today.strftime('%Y%m%d')
         if (site_updated_date and not from_db_last_date) or (str(site_updated_date) > from_db_last_date):
-            csv_processed_path = os.path.join(os.getcwd(), "legal/output/fda/%s"%folder_date_name)
-            excel_processing_path = os.path.join(os.getcwd(), "legal/output/fda/%s/"%folder_date_name)
+            csv_processed_path = os.path.join(os.getcwd(), "legal/output/%s/"%folder_date_name)
+            excel_processing_path = os.path.join(os.getcwd(), "legal/output/%s/"%folder_date_name)
             make_dir(csv_processed_path)
             #sel = Selector(text = response.body)
             timestr = time.strftime("%Y%m%d%H")
@@ -66,6 +66,7 @@ class NextPage(BasePage):
             data = {'last_modified_at': site_updated_date}
         else:
             data = {'last_modified_at': from_db_last_date}
+        self.item_log.item.last_scraped_at = datetime.today()
         yield data
 
 class ClinicalInvestigatorsTerminal(BaseSpider):

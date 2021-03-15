@@ -40,7 +40,7 @@ class NextPage(BasePage):
         folder_date_name = today.strftime('%Y%m%d')
         date_time = datetime.strptime(last_date, '%a, %d %b %Y %H:%M:%S').strftime('%Y-%m-%d')
         if (date_time and not from_db_last_date) or (str(date_time) > from_db_last_date):
-            csv_processed_path = os.path.join(os.getcwd(), 'legal/output/cms_medicare/%s'%folder_date_name)
+            csv_processed_path = os.path.join(os.getcwd(), 'legal/output/%s'%folder_date_name)
             make_dir(csv_processed_path)
             sel = Selector(text = response.text)
             timestr = time.strftime("%Y%m%d%H")
@@ -51,6 +51,7 @@ class NextPage(BasePage):
             data = {'last_modified_at' : str(date_time)}
         else:
             data = {'last_modified_at': from_db_last_date}
+        self.item_log.item.last_scraped_at = datetime.today()
         yield data
 
 class CMSDetailSpider(BaseSpider):

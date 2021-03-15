@@ -6,7 +6,8 @@ class Source(BaseSource):
 
 class CrawlRun(BaseCrawlRun):
     source  = models.ForeignKey(Source, on_delete=models.CASCADE, related_name='crawl_runs')
-
+    is_logged =  models.BooleanField(default=False)
+    logged_at = models.DateTimeField(null=True, blank=True)
     class Meta(BaseCrawlRun.Meta):
         pass
 

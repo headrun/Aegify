@@ -48,8 +48,8 @@ class MainPage(BasePage):
         today = datetime.now()
         folder_date_name = today.strftime('%Y%m%d')
         if (site_date and not from_db_last_date) or str(site_date) > from_db_last_date:
-            csv_processed_path = os.path.join(os.getcwd(), 'legal/output/florida/%s/'%folder_date_name)
-            text_processing_path = os.path.join(os.getcwd(), 'legal/output/florida/%s/'%folder_date_name)
+            csv_processed_path = os.path.join(os.getcwd(), 'legal/output/%s/florida/'%folder_date_name)
+            text_processing_path = os.path.join(os.getcwd(), 'legal/output/%s/florida/'%folder_date_name)
             make_dir(csv_processed_path)
             timestr = time.strftime("%Y%m%d")
             input_text_file = 'FL_MedicalLicensureBoard_US_STATE' +  '_' + (response.url).split('/')[-1]
